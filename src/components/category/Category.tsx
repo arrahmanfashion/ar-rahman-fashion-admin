@@ -16,12 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import MultipleSelector from "../ui/multiselect";
 import {
   useCreateCategoryMutation,
   useEditCategoryMutation,
-  useGetAllCategoriesQuery,
-  useGetMainCategoriesQuery,
 } from "@/redux/featured/categories/categoryApi";
 import { useForm, FormProvider } from "react-hook-form";
 import { ImagePlusIcon, XIcon } from "lucide-react";
@@ -39,8 +36,6 @@ export type Option = {
 type CategoryFormValues = {
   name: string;
   details: string;
-  subCategories: Option[];
-  parentCategory?: string;
   iconName?: string;
   iconUrl?: string;
 };
@@ -74,8 +69,6 @@ export default function Category({
     defaultValues: {
       name: "",
       details: "",
-      subCategories: [],
-      parentCategory: "",
       iconName: "",
       iconUrl: "",
     },
@@ -85,20 +78,9 @@ export default function Category({
 
   useEffect(() => {
     if (editCategory) {
-      console.log('Original subcategories:', editCategory.subCategories);
-      const mappedSubCategories = editCategory.subCategories?.map((sub: string) => {
-        console.log('Mapping subcategory:', sub);
-        return {
-          value: sub || 'empty',
-          label: sub || 'Unnamed Category',
-        };
-      }) || [];
-      console.log('Final mapped subcategories:', mappedSubCategories);
       reset({
         name: editCategory.name || "",
         details: editCategory.details || "",
-        subCategories: mappedSubCategories,
-        parentCategory: editCategory.parentCategory || "",
         iconName: editCategory.icon?.name || "",
         iconUrl: editCategory.icon?.url || "",
       });
@@ -123,21 +105,7 @@ export default function Category({
     }
   }, [image, bannerImg, editCategory]);
 
-  const { data: categoriesData, isLoading: isCategoriesLoading } =
-    useGetAllCategoriesQuery(undefined);
-  const { data: mainCategoriesData } = useGetMainCategoriesQuery(undefined);
 
-  const simplifiedCategories: Option[] =
-    categoriesData?.map((cat: any) => ({
-      value: cat._id,
-      label: cat.name,
-    })) ?? [];
-
-  const mainCategories: Option[] =
-    mainCategoriesData?.map((cat: any) => ({
-      value: cat._id,
-      label: cat.name,
-    })) ?? [];
 
   const onSubmit = async (data: CategoryFormValues) => {
     const submitToast = toast.loading(
@@ -153,8 +121,6 @@ export default function Category({
           name: data.iconName || "Default Icon Name",
           url: editCategory?.icon?.url || "https://via.placeholder.com/150",
         },
-        subCategories: data.subCategories.map((cat: any) => cat.value || cat.label),
-        parentCategory: data.parentCategory || undefined,
         ...(type === "edit" && editCategory && { deletedImages: deletedImages || "" }),
       };
 
@@ -248,23 +214,7 @@ export default function Category({
                     />
                   </div>
 
-                  <div>
-                    <Label>SubCategories</Label>
-                    <MultipleSelector
-                      commandProps={{ label: "Add SubCategories" }}
-                      defaultOptions={[]}
-                      placeholder="Type subcategory name and press Enter"
-                      creatable
-                      hideClearAllButton
-                      hidePlaceholderWhenSelected
-                      badgeClassName="pr-8 min-w-0 relative flex items-center gap-1"
-                      emptyIndicator={
-                        <p className="text-center text-sm">Type to create new subcategory</p>
-                      }
-                      value={watch("subCategories")}
-                      onChange={(val) => setValue("subCategories", val)}
-                    />
-                  </div>
+
 
 
 

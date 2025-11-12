@@ -31,7 +31,7 @@ import {
 import { Checkbox } from "../ui/checkbox";
 import MultipleSelector from "../ui/multiselect";
 
-import { useGetAllCategoriesQuery, useGetMainCategoriesQuery, useGetSubCategoriesQuery } from "@/redux/featured/categories/categoryApi";
+import { useGetAllCategoriesQuery } from "@/redux/featured/categories/categoryApi";
 
 import { useAppDispatch } from "@/redux/hooks";
 import { setTags } from "@/redux/featured/tags/tagsSlice";
@@ -66,8 +66,6 @@ export default function AddProductForm() {
   const [createProduct] = useCreateProductMutation();
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useGetAllCategoriesQuery(undefined);
-  // const { data: mainCategoriesData, isLoading: isMainCategoriesLoading } =
-  //   useGetMainCategoriesQuery(undefined);
   const { data: tagsData, isLoading: isTagsLoading } =
     useGetAllTagsQuery(undefined);
   const { data: brands, isLoading: isBrandsLoading } =
@@ -85,7 +83,6 @@ export default function AddProductForm() {
       video: "",
       brandAndCategories: {
         categories: [],
-        subcategory: "",
         tags: [],
       },
       description: {
@@ -193,25 +190,9 @@ export default function AddProductForm() {
       label: cat.name,
     })) ?? [];
 
-  const simplifiedMainCategories: Option[] =
-    categoriesData?.map((cat: any) => ({
-      value: cat._id,
-      label: cat.name,
-    })) ?? [];
 
 
 
-  // Watch selected categories to get subcategories
-  const selectedCategories = form.watch("brandAndCategories.categories");
-  const firstSelectedCategory = selectedCategories?.[0];
-  
-  // Get subcategories from the selected main category
-  const selectedMainCategory = categoriesData?.find(cat => cat._id === firstSelectedCategory);
-  const simplifiedSubCategories: Option[] =
-    selectedMainCategory?.subCategories?.map((subCat: string) => ({
-      value: subCat,
-      label: subCat,
-    })) ?? [];
 
 
 
@@ -287,7 +268,7 @@ export default function AddProductForm() {
               name="description.name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Product Name</FormLabel>
+                  <FormLabel>Product Name <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter product name"
@@ -314,7 +295,7 @@ export default function AddProductForm() {
               name="description.slug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Slug</FormLabel>
+                  <FormLabel>Slug <span className="text-gray-500">(optional)</span></FormLabel>
                   <FormControl>
                     <Input placeholder="Auto-generated slug" {...field} />
                   </FormControl>
@@ -328,7 +309,7 @@ export default function AddProductForm() {
               name="description.description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Product Description</FormLabel>
+                  <FormLabel>Product Description <span className="text-gray-500">(optional)</span></FormLabel>
                   <RichTextEditor
                     value={description}
                     onChange={(content: any) => setDescription(content)}
@@ -353,7 +334,7 @@ export default function AddProductForm() {
                 name="productInfo.price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price</FormLabel>
+                    <FormLabel>Price <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -378,7 +359,7 @@ export default function AddProductForm() {
                 name="productInfo.salePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Retail Sale Price</FormLabel>
+                    <FormLabel>Retail Sale Price <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -531,7 +512,7 @@ export default function AddProductForm() {
               name="productInfo.quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Quantity</FormLabel>
+                  <FormLabel>Quantity <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -551,7 +532,7 @@ export default function AddProductForm() {
               name="productInfo.sku"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SKU</FormLabel>
+                  <FormLabel>SKU <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="Enter SKU" {...field} />
                   </FormControl>
@@ -568,7 +549,7 @@ export default function AddProductForm() {
               name="description.unit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Select Unit</FormLabel>
+                  <FormLabel>Select Unit <span className="text-red-500">*</span></FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -594,7 +575,7 @@ export default function AddProductForm() {
               name="description.status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>Status <span className="text-red-500">*</span></FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -622,7 +603,7 @@ export default function AddProductForm() {
               name="productInfo.width"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Width</FormLabel>
+                  <FormLabel>Width <span className="text-gray-500">(optional)</span></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., 120cm" {...field} />
                   </FormControl>
@@ -635,7 +616,7 @@ export default function AddProductForm() {
               name="productInfo.height"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Height</FormLabel>
+                  <FormLabel>Height <span className="text-gray-500">(optional)</span></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., 75cm" {...field} />
                   </FormControl>
@@ -648,7 +629,7 @@ export default function AddProductForm() {
               name="productInfo.length"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Length</FormLabel>
+                  <FormLabel>Length <span className="text-gray-500">(optional)</span></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., 60cm" {...field} />
                   </FormControl>
@@ -686,7 +667,7 @@ export default function AddProductForm() {
                   name="productInfo.external.productUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>External Product URL</FormLabel>
+                      <FormLabel>External Product URL <span className="text-gray-500">(optional)</span></FormLabel>
                       <FormControl>
                         <Input
                           placeholder="https://example.com/product"
@@ -702,7 +683,7 @@ export default function AddProductForm() {
                   name="productInfo.external.buttonLabel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>External Button Label</FormLabel>
+                      <FormLabel>External Button Label <span className="text-gray-500">(optional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., Buy on Amazon" {...field} />
                       </FormControl>
@@ -729,7 +710,7 @@ export default function AddProductForm() {
                   name={`specifications.${index}.key`}
                   render={({ field }) => (
                     <FormItem className="flex-1">
-                      <FormLabel>Key</FormLabel>
+                      <FormLabel>Key <span className="text-gray-500">(optional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. Color" {...field} />
                       </FormControl>
@@ -743,7 +724,7 @@ export default function AddProductForm() {
                   name={`specifications.${index}.value`}
                   render={({ field }) => (
                     <FormItem className="flex-1">
-                      <FormLabel>Value</FormLabel>
+                      <FormLabel>Value <span className="text-gray-500">(optional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. Red" {...field} />
                       </FormControl>
@@ -789,7 +770,7 @@ export default function AddProductForm() {
               name="video"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Video URL (Optional)</FormLabel>
+                  <FormLabel>Video URL <span className="text-gray-500">(optional)</span></FormLabel>
                   <FormControl>
                     <Input
                       type="url"
@@ -855,7 +836,7 @@ export default function AddProductForm() {
               name="brandAndCategories.categories"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categories</FormLabel>
+                  <FormLabel>Categories <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     {isCategoriesLoading ? (
                       <Input
@@ -867,7 +848,7 @@ export default function AddProductForm() {
                         value={
                           field.value
                             .map((val) =>
-                              simplifiedMainCategories.find(
+                              simplifiedCategories.find(
                                 (opt) => opt.value === val
                               )
                             )
@@ -876,11 +857,9 @@ export default function AddProductForm() {
                         onChange={(options) => {
                           const values = options.map((opt) => opt.value);
                           field.onChange(values);
-                          // Clear subcategory when main categories change
-                          form.setValue("brandAndCategories.subcategory", "");
                         }}
-                        defaultOptions={simplifiedMainCategories}
-                        options={simplifiedMainCategories}
+                        defaultOptions={simplifiedCategories}
+                        options={simplifiedCategories}
                         creatable={false}
                         maxSelected={1}
                         placeholder="Select categories..."
@@ -897,33 +876,7 @@ export default function AddProductForm() {
               )}
             />
 
-            {/* SubCategory */}
-            {firstSelectedCategory && (
-              <FormField
-                control={form.control}
-                name="brandAndCategories.subcategory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SubCategory</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select subcategory" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {simplifiedSubCategories.map((subCat) => (
-                          <SelectItem key={subCat.value} value={subCat.value}>
-                            {subCat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+
 
             {/* Tags */}
             <FormField
@@ -931,7 +884,7 @@ export default function AddProductForm() {
               name="brandAndCategories.tags"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tags</FormLabel>
+                  <FormLabel>Tags <span className="text-gray-500">(optional)</span></FormLabel>
                   <FormControl>
                     {isTagsLoading ? (
                       <Input
@@ -941,7 +894,7 @@ export default function AddProductForm() {
                     ) : (
                       <MultipleSelector
                         value={
-                          field.value
+                          (field.value || [])
                             .map((val) =>
                               simplifiedTags.find((opt) => opt.value === val)
                             )

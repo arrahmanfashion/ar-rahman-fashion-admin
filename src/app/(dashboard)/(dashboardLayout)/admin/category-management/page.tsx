@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Icon,
+  Trash2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { ICategory } from '@/types/Category';
@@ -21,13 +22,15 @@ import {
   selectCategories,
   setCategories,
 } from '@/redux/featured/categories/categorySlice';
-import { useGetAllCategoriesQuery } from '@/redux/featured/categories/categoryApi';
+import { useGetAllCategoriesQuery, useDeleteCategoryMutation } from '@/redux/featured/categories/categoryApi';
 import { IconBase } from 'react-icons/lib';
 import ViewCategoryDetails from '@/components/category/ViewCategory';
 import Category from '@/components/category/Category';
+import toast from 'react-hot-toast';
 
 export default function CategoryManagement() {
   const { data: allCategories,isLoading,refetch } = useGetAllCategoriesQuery();
+  const [deleteCategory] = useDeleteCategoryMutation();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const dispatch = useAppDispatch();
@@ -83,6 +86,43 @@ export default function CategoryManagement() {
     if (currentPage > 0) {
       setCurrentPage(prev => prev - 1);
     }
+  };
+
+  const handleDeleteCategory = (categoryId: string, categoryName: string) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p>Are you sure you want to delete &ldquo;{categoryName}&rdquo;?</p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={async () => {
+                toast.dismiss(t.id);
+                const deleteToast = toast.loading('Deleting category...');
+                try {
+                  await deleteCategory(categoryId).unwrap();
+                  toast.success('Category deleted successfully!', { id: deleteToast });
+                  refetch();
+                } catch (error: any) {
+                  const errorMessage = error?.data?.message || error?.message || 'Failed to delete category';
+                  toast.error(errorMessage, { id: deleteToast });
+                }
+              }}
+            >
+              Delete
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => toast.dismiss(t.id)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ),
+      { 
+        duration: Infinity,
+        position: 'bottom-right'
+      }
+    );
   };
 
   return (
@@ -195,9 +235,6 @@ export default function CategoryManagement() {
                   Category
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-gray-600">
-                  Subcategories
-                </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-600">
                   Description
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-gray-600">
@@ -208,7 +245,7 @@ export default function CategoryManagement() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-10">Loading</td>
+                  <td colSpan={3} className="text-center py-10">Loading</td>
                 </tr>
               ) : filteredCategories.length > 0 ? (
                 filteredCategories.map((category, index) => (
@@ -221,9 +258,6 @@ export default function CategoryManagement() {
                         <div className="text-blue-600"></div>
                         <span className="font-medium">{category.name}</span>
                       </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      {category?.subCategories.length}
                     </td>
                     <td className="py-4 px-4 text-gray-600 max-w-xs truncate">
                       {category.details}
@@ -238,13 +272,21 @@ export default function CategoryManagement() {
                           Edit
                         </Category>
                         <ViewCategoryDetails category={category} />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category._id, category.name)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="text-center py-10 text-gray-500">
+                  <td colSpan={3} className="text-center py-10 text-gray-500">
                     No categories found.
                   </td>
                 </tr>
