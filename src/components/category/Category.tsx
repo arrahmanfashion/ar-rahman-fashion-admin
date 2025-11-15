@@ -262,12 +262,20 @@ function IconUpload({
   setIconImg: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
   editCategory?: any;
 }) {
-  const [{ files }, { removeFile, openFileDialog, getInputProps }] =
+  const [{ files, errors }, { removeFile, openFileDialog, getInputProps }] =
     useFileUpload({
       accept: "image/*",
       multiple: false,
+      maxSize: 3 * 1024 * 1024, // 3MB limit for icons
       initialFiles: [],
     });
+
+  // Show error toast for file upload issues
+  useEffect(() => {
+    if (errors.length > 0) {
+      toast.error(errors[0]);
+    }
+  }, [errors]);
 
   useEffect(() => {
     if (files && files.length > 0) {
@@ -322,11 +330,19 @@ function BannerImage({
   setBannerImg: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
   editCategory?: any;
 }) {
-  const [{ files }, { removeFile, openFileDialog, getInputProps }] =
+  const [{ files, errors }, { removeFile, openFileDialog, getInputProps }] =
     useFileUpload({
       accept: "image/*",
+      maxSize: 5 * 1024 * 1024, // 5MB limit
       initialFiles: [],
     });
+
+  // Show error toast for file upload issues
+  useEffect(() => {
+    if (errors.length > 0) {
+      toast.error(errors[0]);
+    }
+  }, [errors]);
 
   useEffect(() => {
     if (files && files.length > 0) {
@@ -394,10 +410,18 @@ function Avatar({
   setImage: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
   editCategory?: any;
 }) {
-  const [{ files }, { openFileDialog, getInputProps }] = useFileUpload({
+  const [{ files, errors }, { openFileDialog, getInputProps }] = useFileUpload({
     accept: "image/*",
+    maxSize: 3 * 1024 * 1024, // 3MB limit
     initialFiles: [],
   });
+
+  // Show error toast for file upload issues
+  useEffect(() => {
+    if (errors.length > 0) {
+      toast.error(errors[0]);
+    }
+  }, [errors]);
 
   useEffect(() => {
     if (files && files.length > 0) {
