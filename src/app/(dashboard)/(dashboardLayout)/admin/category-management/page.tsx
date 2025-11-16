@@ -15,6 +15,7 @@ import {
   Icon,
   Trash2,
 } from 'lucide-react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { ICategory } from '@/types/Category';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -232,6 +233,9 @@ export default function CategoryManagement() {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-4 font-medium text-gray-600">
+                  Banner
+                </th>
+                <th className="text-left py-3 px-4 font-medium text-gray-600">
                   Category
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-gray-600">
@@ -245,7 +249,7 @@ export default function CategoryManagement() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={3} className="text-center py-10">Loading</td>
+                  <td colSpan={4} className="text-center py-10">Loading</td>
                 </tr>
               ) : filteredCategories.length > 0 ? (
                 filteredCategories.map((category, index) => (
@@ -253,6 +257,17 @@ export default function CategoryManagement() {
                     key={index}
                     className="border-b border-gray-100 hover:bg-gray-50"
                   >
+                    <td className="py-4 px-4">
+                      <div className="w-16 h-10 rounded-md overflow-hidden bg-gray-100">
+                        <Image
+                          src={typeof category.bannerImg === 'string' ? category.bannerImg : "https://via.placeholder.com/64x40?text=No+Image"}
+                          alt={category.name}
+                          className="object-cover w-full h-full"
+                          width={64}
+                          height={40}
+                        />
+                      </div>
+                    </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <div className="text-blue-600"></div>
@@ -286,7 +301,7 @@ export default function CategoryManagement() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="text-center py-10 text-gray-500">
+                  <td colSpan={4} className="text-center py-10 text-gray-500">
                     No categories found.
                   </td>
                 </tr>
