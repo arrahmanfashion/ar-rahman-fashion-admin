@@ -36,8 +36,6 @@ export type Option = {
 type CategoryFormValues = {
   name: string;
   details: string;
-  iconName?: string;
-  iconUrl?: string;
 };
 
 type SubCategory = {
@@ -60,8 +58,6 @@ export default function Category({
   const [updateCategory, { isLoading: EditLoading }] =
     useEditCategoryMutation();
   const [bannerImg, setBannerImg] = useState<FileWithPreview | null>(null);
-  const [image, setImage] = useState<FileWithPreview | null>(null);
-  const [iconImg, setIconImg] = useState<FileWithPreview | null>(null);
   const [open, setOpen] = useState(false);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
 
@@ -69,8 +65,6 @@ export default function Category({
     defaultValues: {
       name: "",
       details: "",
-      iconName: "",
-      iconUrl: "",
     },
   });
 
@@ -81,8 +75,6 @@ export default function Category({
       reset({
         name: editCategory.name || "",
         details: editCategory.details || "",
-        iconName: editCategory.icon?.name || "",
-        iconUrl: editCategory.icon?.url || "",
       });
     }
   }, [editCategory, reset]);
@@ -90,20 +82,10 @@ export default function Category({
   useEffect(() => {
     if (!editCategory) return;
 
-    const newDeleted: string[] = [];
-
-    if (image && editCategory.image) {
-      newDeleted.push(editCategory.image);
-    }
-
     if (bannerImg && editCategory.bannerImg) {
-      newDeleted.push(editCategory.bannerImg);
+      setDeletedImages([editCategory.bannerImg]);
     }
-
-    if (newDeleted.length > 0) {
-      setDeletedImages((prev) => [...prev, ...newDeleted]);
-    }
-  }, [image, bannerImg, editCategory]);
+  }, [bannerImg, editCategory]);
 
 
 
@@ -117,25 +99,15 @@ export default function Category({
       const payload = {
         name: data.name,
         details: data.details,
-        icon: {
-          name: data.iconName || "Default Icon Name",
-          url: editCategory?.icon?.url || "https://via.placeholder.com/150",
-        },
         ...(type === "edit" && editCategory && { deletedImages: deletedImages || "" }),
       };
 
       // 🔹 Append payload JSON
       formData.append("data", JSON.stringify(payload));
 
-      // 🔹 Handle uploads
-      if (image?.file) {
-        formData.append("image", image.file as File);
-      }
+      // 🔹 Handle banner image upload
       if (bannerImg?.file) {
         formData.append("bannerImg", bannerImg.file as File);
-      }
-      if (iconImg?.file) {
-        formData.append("icon", iconImg.file as File);
       }
 
       // 🔹 Submit request
@@ -154,9 +126,7 @@ export default function Category({
       setOpen(false);
       reset();
       refetch();
-      setImage(null);
       setBannerImg(null);
-      setIconImg(null);
     } catch (error: any) {
       const errorMessage =
         error?.data?.errorSources?.[0]?.message ||
@@ -189,7 +159,6 @@ export default function Category({
                 setBannerImg={setBannerImg}
                 editCategory={editCategory}
               />
-              <Avatar setImage={setImage} editCategory={editCategory} />
               <FormProvider {...methods}>
                 <form
                   id="add-category"
@@ -220,22 +189,7 @@ export default function Category({
 
 
 
-                  <div className="*:not-first:mt-2">
-                    <div className="flex-1 space-y-2">
-                      <Label>Icon Name (Optional)</Label>
-                      <Input
-                        placeholder="Icon name"
-                        {...register("iconName")}
-                      />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <Label>Upload Icon Image</Label>
-                      <IconUpload
-                        setIconImg={setIconImg}
-                        editCategory={editCategory}
-                      />
-                    </div>
-                  </div>
+
                 </form>
               </FormProvider>
             </div>
@@ -255,73 +209,7 @@ export default function Category({
     </Dialog>
   );
 }
-function IconUpload({
-  setIconImg,
-  editCategory,
-}: {
-  setIconImg: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
-  editCategory?: any;
-}) {
-  const [{ files, errors }, { removeFile, openFileDialog, getInputProps }] =
-    useFileUpload({
-      accept: "image/*",
-      multiple: false,
-      maxSize: 3 * 1024 * 1024, // 3MB limit for icons
-      initialFiles: [],
-    });
 
-  // Show error toast for file upload issues
-  useEffect(() => {
-    if (errors.length > 0) {
-      toast.error(errors[0]);
-    }
-  }, [errors]);
-
-  useEffect(() => {
-    if (files && files.length > 0) {
-      setIconImg(files[0]);
-    } else {
-      setIconImg(null);
-    }
-  }, [files, setIconImg]);
-
-  const currentImage = files[0]?.preview || null;
-  const imageUrl =
-    currentImage ||
-    editCategory?.icon?.url ||
-    "https://via.placeholder.com/64?text=Icon";
-
-  return (
-    <div className="relative w-20 h-20 flex items-center justify-center overflow-hidden rounded-md bg-muted cursor-pointer">
-      <Image
-        src={imageUrl}
-        alt="Category icon"
-        className="object-cover w-full h-full"
-        width={80}
-        height={80}
-      />
-      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 hover:opacity-100 transition">
-        <button
-          type="button"
-          onClick={openFileDialog}
-          className="rounded-full bg-white/80 p-1 hover:bg-white"
-        >
-          <ImagePlusIcon size={16} className="text-black" />
-        </button>
-        {currentImage && (
-          <button
-            type="button"
-            onClick={() => removeFile(files[0]?.id)}
-            className="rounded-full bg-white/80 p-1 hover:bg-white"
-          >
-            <XIcon size={16} className="text-black" />
-          </button>
-        )}
-      </div>
-      <input {...getInputProps()} className="sr-only" />
-    </div>
-  );
-}
 // UPDATED BannerImage Component
 function BannerImage({
   setBannerImg,
@@ -357,110 +245,38 @@ function BannerImage({
   const imageUrl =
     currentImage ||
     editCategory?.bannerImg ||
-    "https://via.placeholder.com/512x96?text=No+Banner";
+    "https://via.placeholder.com/400x200?text=Banner+Image";
 
   return (
-    <div className="h-32">
-      <div className="bg-muted relative flex size-full items-center justify-center overflow-hidden">
+    <div className="space-y-2 mb-4">
+      <Label>Banner Image</Label>
+      <div className="relative w-full h-48 flex items-center justify-center overflow-hidden rounded-md bg-muted cursor-pointer border-2 border-dashed border-gray-300">
         <Image
-          className="size-full object-cover"
           src={imageUrl}
-          alt={
-            currentImage ? "Preview of uploaded image" : "Category banner image"
-          }
-          width={512}
-          height={96}
+          alt="Category banner"
+          className="object-cover w-full h-full"
+          width={400}
+          height={200}
         />
-
-        <div className="absolute inset-0 flex items-center justify-center gap-2">
+        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 hover:opacity-100 transition">
           <button
             type="button"
-            className="focus-visible:border-ring focus-visible:ring-ring/50 z-50 flex size-10 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white transition-[color,box-shadow] outline-none hover:bg-black/80 focus-visible:ring-[3px]"
             onClick={openFileDialog}
-            aria-label={currentImage ? "Change image" : "Upload image"}
+            className="rounded-full bg-white/80 p-2 hover:bg-white"
           >
-            <ImagePlusIcon size={16} aria-hidden="true" />
+            <ImagePlusIcon size={20} className="text-black" />
           </button>
           {currentImage && (
             <button
               type="button"
-              className="focus-visible:border-ring focus-visible:ring-ring/50 z-50 flex size-10 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white transition-[color,box-shadow] outline-none hover:bg-black/80 focus-visible:ring-[3px]"
               onClick={() => removeFile(files[0]?.id)}
-              aria-label="Remove image"
+              className="rounded-full bg-white/80 p-2 hover:bg-white"
             >
-              <XIcon size={16} aria-hidden="true" />
+              <XIcon size={20} className="text-black" />
             </button>
           )}
         </div>
-      </div>
-      <input
-        {...getInputProps()}
-        className="sr-only"
-        aria-label="Upload image file"
-      />
-    </div>
-  );
-}
-
-// UPDATED Avatar Component
-function Avatar({
-  setImage,
-  editCategory,
-}: {
-  setImage: React.Dispatch<React.SetStateAction<FileWithPreview | null>>;
-  editCategory?: any;
-}) {
-  const [{ files, errors }, { openFileDialog, getInputProps }] = useFileUpload({
-    accept: "image/*",
-    maxSize: 3 * 1024 * 1024, // 3MB limit
-    initialFiles: [],
-  });
-
-  // Show error toast for file upload issues
-  useEffect(() => {
-    if (errors.length > 0) {
-      toast.error(errors[0]);
-    }
-  }, [errors]);
-
-  useEffect(() => {
-    if (files && files.length > 0) {
-      setImage(files[0]);
-    } else {
-      setImage(null);
-    }
-  }, [files, setImage]);
-
-  const currentImage = files[0]?.preview || null;
-
-  const imageUrl =
-    currentImage ||
-    editCategory?.image ||
-    "https://via.placeholder.com/80x80?text=No+Img";
-
-  return (
-    <div className="-mt-10 px-6">
-      <div className="border-background bg-muted relative flex size-20 items-center justify-center overflow-hidden rounded-full border-4 shadow-xs shadow-black/10">
-        <Image
-          src={imageUrl}
-          className="size-full object-cover"
-          width={80}
-          height={80}
-          alt="Profile image"
-        />
-        <button
-          type="button"
-          className="focus-visible:border-ring focus-visible:ring-ring/50 absolute flex size-8 cursor-pointer items-center justify-center rounded-full bg-black/60 text-white transition-[color,box-shadow] outline-none hover:bg-black/80 focus-visible:ring-[3px]"
-          onClick={openFileDialog}
-          aria-label="Change profile picture"
-        >
-          <ImagePlusIcon size={16} aria-hidden="true" />
-        </button>
-        <input
-          {...getInputProps()}
-          className="sr-only"
-          aria-label="Upload profile picture"
-        />
+        <input {...getInputProps()} className="sr-only" />
       </div>
     </div>
   );
