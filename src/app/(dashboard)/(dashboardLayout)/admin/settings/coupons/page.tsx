@@ -29,6 +29,7 @@ const initialFormState = {
   discountAmount: "",
   minimumPurchaseAmount: "",
   expireDate: "",
+  isApproved: true,
 };
 
 export default function CouponsDemo() {
@@ -76,6 +77,7 @@ export default function CouponsDemo() {
           couponType === "free-shipping" ? 0 : Number(formData.discountAmount),
         minimumPurchaseAmount: Number(formData.minimumPurchaseAmount),
         expireDate: formData.expireDate,
+        isApproved: formData.isApproved,
       };
 
       const response = await createCoupon(payload).unwrap();
@@ -116,6 +118,7 @@ export default function CouponsDemo() {
       discountAmount: coupon.discountAmount ? String(coupon.discountAmount) : "",
       minimumPurchaseAmount: String(coupon.minimumPurchaseAmount),
       expireDate: coupon.expireDate.split("T")[0],
+      isApproved: coupon.isApproved ?? true,
     });
     setIsEditModalOpen(true);
   };
@@ -159,6 +162,7 @@ export default function CouponsDemo() {
           couponType === "free-shipping" ? 0 : Number(formData.discountAmount),
         minimumPurchaseAmount: Number(formData.minimumPurchaseAmount),
         expireDate: formData.expireDate,
+        isApproved: formData.isApproved,
       };
 
       const response = await updateCoupon({
@@ -282,6 +286,22 @@ export default function CouponsDemo() {
                   onChange={(e) => handleChange("expireDate", e.target.value)}
                 />
               </div>
+            </div>
+
+            <div>
+              <Label className="font-medium mb-2 block">Approval Status *</Label>
+              <Select
+                value={formData.isApproved ? "approved" : "pending"}
+                onValueChange={(value) => handleChange("isApproved", value === "approved")}
+              >
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Select approval status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Button
@@ -446,6 +466,22 @@ export default function CouponsDemo() {
               value={formData.expireDate}
               onChange={(e) => handleChange("expireDate", e.target.value)}
             />
+
+            <div>
+              <Label className="font-medium mb-2 block">Approval Status *</Label>
+              <Select
+                value={formData.isApproved ? "approved" : "pending"}
+                onValueChange={(value) => handleChange("isApproved", value === "approved")}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select approval status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <Button className="w-full" onClick={handleUpdateCoupon} disabled={isUpdating}>
               {isUpdating ? "Updating..." : "Update Coupon"}
