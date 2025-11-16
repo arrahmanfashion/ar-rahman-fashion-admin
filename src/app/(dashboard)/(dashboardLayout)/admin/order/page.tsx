@@ -48,6 +48,7 @@ type Order = {
   total: number;
   status: OrderStatus;
   userType: "sr" | "customer";
+  deliveryCharge?: number;
 };
 
 const ORDER_STATUSES: OrderStatus[] = [
@@ -127,6 +128,7 @@ const OrderPage = () => {
         total: raw.totalAmount || 0,
         status: orderStatus, // Use the validated status
         userType: userRole === "sr" ? "sr" : "customer",
+        deliveryCharge: raw.deliveryCharge || 0,
       };
     };
 
@@ -665,7 +667,7 @@ const OrderPage = () => {
               // This .find() will now work correctly on the orderData array
               const rawOrder = orderData.find(
                 (o: any) => o._id === expandedOrder
-              );
+              ) as any & { deliveryCharge: number };
               if (!rawOrder) return <p>Order not found.</p>;
 
               // All logic below is correct for your data structure
@@ -731,6 +733,14 @@ const OrderPage = () => {
                           {typeof rawOrder.paymentInfo === 'string' 
                             ? rawOrder.paymentInfo 
                             : (rawOrder.paymentInfo as any)?.method || "Unknown"}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Subtotal:</span> ৳
+                          {rawOrder.orderInfo?.reduce((sum: number, item: any) => sum + (item.totalAmount?.subTotal || 0), 0) || (rawOrder.totalAmount - (rawOrder.deliveryCharge || 0))}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Delivery Charge:</span> ৳
+                          {rawOrder.deliveryCharge}
                         </p>
                         <p>
                           <span className="font-semibold">Total:</span> ৳
