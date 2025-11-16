@@ -25,14 +25,22 @@ export default function SettingsTab() {
     rocket: { rocketLogo: "", rocketNumber: "" },
     upay: { upayLogo: "", upayNumber: "" },
   });
-  const [deliveryCharge, setDeliveryCharge] = useState<number>(0);
+  const [deliverySettings, setDeliverySettings] = useState({
+    insideDhakaCharge: 0,
+    outsideDhakaCharge: 0,
+  });
   const [files, setFiles] = useState<Record<string, File | null>>({});
 
   // Load settings data
   useEffect(() => {
     if (data) {
       if (data.mobileMfs) setMobileMfs(data.mobileMfs);
-      if (data.deliveryCharge !== undefined) setDeliveryCharge(data.deliveryCharge);
+      if (data.deliverySettings) {
+        setDeliverySettings({
+          insideDhakaCharge: data.deliverySettings.insideDhakaCharge || 0,
+          outsideDhakaCharge: data.deliverySettings.outsideDhakaCharge || 0,
+        });
+      }
     }
   }, [data]);
 
@@ -82,13 +90,22 @@ export default function SettingsTab() {
           }
         });
       } else if (type === "deliveryCharge") {
-        formData.append("deliveryCharge", deliveryCharge.toString());
+        // 🔍 Debug delivery settings before sending
+        console.log("=== DELIVERY SETTINGS DEBUG ===");
+        console.log("Current deliverySettings state:", deliverySettings);
+        console.log("JSON stringified:", JSON.stringify(deliverySettings));
+        
+        formData.append("deliverySettings", JSON.stringify(deliverySettings));
+        
+        // Alternative approach - send as separate fields
+        formData.append("deliverySettings[insideDhakaCharge]", String(deliverySettings.insideDhakaCharge));
+        formData.append("deliverySettings[outsideDhakaCharge]", String(deliverySettings.outsideDhakaCharge));
       }
 
-      // 🔍 Debug (optional)
-      
+      // 🔍 Debug FormData contents
+      console.log("=== FORMDATA DEBUG ===");
       for (const pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
+        console.log(`${pair[0]}: ${pair[1]}`);
       }
 
       const res = data?._id 
@@ -96,10 +113,11 @@ export default function SettingsTab() {
         : await createSettings(formData).unwrap();
 
       if (res.success) {
+        console.log("=== API RESPONSE ===", res);
         toast.success(
           type === "mobileMfs"
             ? "Mobile MFS updated successfully!"
-            : "Delivery charge updated successfully!"
+            : "Delivery settings updated successfully!"
         );
         // Clear files state after successful upload
         setFiles({});
@@ -195,17 +213,43 @@ export default function SettingsTab() {
       )}
 
       {activeTab === "deliveryCharge" && (
-        <form onSubmit={(e) => handleSubmit(e, "deliveryCharge")} className="flex flex-col gap-4 max-w-sm">
-          <Input
-            type="number"
-            placeholder="Enter delivery charge"
-            value={deliveryCharge}
-            onChange={(e) => setDeliveryCharge(Number(e.target.value))}
-          />
+        <form onSubmit={(e) => handleSubmit(e, "deliveryCharge")} className="flex flex-col gap-4 max-w-md">
+          <div>
+            <label className="block mb-2 text-sm font-medium">Inside Dhaka Delivery Charge (৳)</label>
+            <Input
+              type="number"
+              placeholder="Enter delivery charge for inside Dhaka"
+              value={deliverySettings.insideDhakaCharge}
+              onChange={(e) => setDeliverySettings(prev => ({
+                ...prev,
+                insideDhakaCharge: Number(e.target.value)
+              }))}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-2 text-sm font-medium">Outside Dhaka Delivery Charge (৳)</label>
+            <Input
+              type="number"
+              placeholder="Enter delivery charge for outside Dhaka"
+              value={deliverySettings.outsideDhakaCharge}
+              onChange={(e) => setDeliverySettings(prev => ({
+                ...prev,
+                outsideDhakaCharge: Number(e.target.value)
+              }))}
+            />
+          </div>
+
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm text-blue-800">
+              • Inside Dhaka: Metropolitan area<br/>
+              • Outside Dhaka: Other areas in Bangladesh
+            </p>
+          </div>
 
           <Button type="submit" disabled={updating || creating}>
             {(updating || creating) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Save Delivery Charge
+            Save Delivery Settings
           </Button>
         </form>
       )}

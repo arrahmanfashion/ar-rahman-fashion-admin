@@ -30,6 +30,11 @@ export interface IContactAndSocial {
   youtubeUrl?: string[];
 }
 
+export interface IDeliverySettings {
+  insideDhakaCharge: number;
+  outsideDhakaCharge: number;
+}
+
 export type TSliderImage = {
   image: string;
   url?: string;
@@ -51,7 +56,8 @@ export interface ISettings {
   createdAt?: string;
   updatedAt?: string;
   __v?: number;
-  deliveryCharge:number;
+  deliveryCharge?: number;
+  deliverySettings?: IDeliverySettings;
 }
 
 export interface ISettingsResponse {
