@@ -123,6 +123,7 @@ export default function EditProductForm({ id }: { id: string }) {
   const [featuredImage, setFeaturedImage] = useState<File | null>(null);
   const [galleryImage, setGalleryImage] = useState<File[]>([]);
   const [deletedImages, setDeletedImages] = useState<[]>([]);
+  const [salePriceCleared, setSalePriceCleared] = useState(false);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(updateProductZodSchema),
@@ -158,8 +159,7 @@ export default function EditProductForm({ id }: { id: string }) {
         productType: product.productType,
         productInfo: {
           price: product.productInfo.price,
-          salePrice: product.productInfo.salePrice || 0,
-          wholeSalePrice: product.productInfo.wholeSalePrice || 0,
+          salePrice: product.productInfo.salePrice,
           quantity: product.productInfo.quantity,
           sku: product.productInfo.sku,
           width: product.productInfo.width || "",
@@ -402,15 +402,23 @@ export default function EditProductForm({ id }: { id: string }) {
                 name="productInfo.salePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Retailer Sale Price</FormLabel>
+                    <FormLabel>Discounted Price <span className="text-gray-500">(optional)</span></FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        placeholder="Enter sale price"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 0)
-                        }
+                        type="text"
+                        placeholder="Enter discounted price"
+                        value={salePriceCleared ? "" : (field.value || "")}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === "") {
+                            setSalePriceCleared(true);
+                            field.onChange(null);
+                          } else if (/^\d*\.?\d*$/.test(value)) {
+                            setSalePriceCleared(false);
+                            const numValue = parseFloat(value);
+                            field.onChange(isNaN(numValue) ? null : numValue);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

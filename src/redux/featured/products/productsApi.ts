@@ -12,6 +12,7 @@ const productApi = baseApi.injectEndpoints({
         params,
       }),
       transformResponse: (response: { data: Product[] }) => response.data,
+      providesTags: ['Product'],
     }),
 
     getSingleProduct: builder.query<Product, string>({
@@ -34,6 +35,7 @@ const productApi = baseApi.injectEndpoints({
         method: 'POST',
         body: formData,
       }),
+      invalidatesTags: ['Product'],
     }),
     updateProduct: builder.mutation<Product, { id: string; formData: any }>({
       query: ({ id, formData }) => ({
@@ -41,6 +43,7 @@ const productApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: formData,
       }),
+      invalidatesTags: ['Product'],
     }),
     deleteProduct: builder.mutation<{ message: string }, string>({
       query: id => ({
@@ -48,6 +51,7 @@ const productApi = baseApi.injectEndpoints({
         method: 'DELETE',
       }),
       transformResponse: (response: { message: string }) => response,
+      invalidatesTags: ['Product'],
     }),
   }),
 });

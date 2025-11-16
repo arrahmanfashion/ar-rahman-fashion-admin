@@ -184,7 +184,7 @@ const CategoryPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <div className="w-full space-y-6">
-        <HeaderActions />
+        <HeaderActions onRefresh={refetch} />
 
         {CategoriesLoading ? (
           <span>Loading...</span>

@@ -95,8 +95,7 @@ export default function AddProductForm() {
       productType: "simple",
       productInfo: {
         price: 0,
-        salePrice: 0,
-        wholeSalePrice: 0,
+        salePrice: undefined,
         quantity: 10,
         sku: "",
         width: "",
@@ -213,13 +212,7 @@ export default function AddProductForm() {
     const salePriceRaw = override.salePrice ?? productInfo.salePrice;
     const salePrice = salePriceRaw ? parseFloat(salePriceRaw.toString()) : null;
 
-    const wholeSalePriceRaw =
-      override.wholeSalePrice ?? productInfo.wholeSalePrice;
-    const wholeSalePrice = wholeSalePriceRaw
-      ? parseFloat(wholeSalePriceRaw.toString())
-      : null;
-
-    form.clearErrors(["productInfo.salePrice", "productInfo.wholeSalePrice"]);
+    form.clearErrors(["productInfo.salePrice"]);
 
     // Sale price < price (only if salePrice exists)
     if (salePrice !== null && salePrice >= price) {
@@ -229,21 +222,6 @@ export default function AddProductForm() {
       });
       toast.error("Sale price must be less than Price!", { icon: "🚫" });
       return true;
-    }
-
-    // Wholesale price < salePrice or price
-    if (wholeSalePrice !== null) {
-      const maxCompare = salePrice !== null ? salePrice : price;
-      if (wholeSalePrice >= maxCompare) {
-        form.setError("productInfo.wholeSalePrice", {
-          type: "manual",
-          message: "Wholesale price must be less than Retail Sale or Price!",
-        });
-        toast.error("Wholesale price must be less than Retail Sale or Price!", {
-          icon: "⚠️",
-        });
-        return true;
-      }
     }
 
     return false; // no error, product can be added
@@ -327,7 +305,7 @@ export default function AddProductForm() {
               Product Info & Pricing
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Base Price */}
               <FormField
                 control={form.control}
@@ -338,7 +316,7 @@ export default function AddProductForm() {
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Enter base price"
+                        placeholder="Enter regular price"
                         min="0"
                         value={field.value || ""}
                         onChange={(e) => {
@@ -353,23 +331,23 @@ export default function AddProductForm() {
                 )}
               />
 
-              {/* Retail Sale Price */}
+              {/* Sale Price */}
               <FormField
                 control={form.control}
                 name="productInfo.salePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Retail Sale Price <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel>Discounted Price <span className="text-gray-500">(optional)</span></FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="Enter retail sale price"
+                        placeholder="Enter discounted price"
                         min="0"
                         value={field.value || ""}
                         onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
+                          const value = e.target.value ? parseFloat(e.target.value) : undefined;
                           field.onChange(value);
-                          validatePrices({ salePrice: value });
+                          if (value) validatePrices({ salePrice: value });
                         }}
                       />
                     </FormControl>
@@ -377,31 +355,6 @@ export default function AddProductForm() {
                   </FormItem>
                 )}
               />
-
-              {/* Wholesale Price */}
-              {/* <FormField
-                control={form.control}
-                name="productInfo.wholeSalePrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Wholesale Price</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Enter wholesale price"
-                        min="0"
-                        value={field.value || ""}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          field.onChange(value);
-                          validatePrices({ wholeSalePrice: value });
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage className="text-red-500 animate-shake" />
-                  </FormItem>
-                )}
-              /> */}
             </div>
           </section>
 
